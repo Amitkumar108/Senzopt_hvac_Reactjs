@@ -1,98 +1,61 @@
+import _ from 'lodash';
 import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
 
-import NVD3Chart from "react-nvd3";
+const WEATHER_API="91659606c139bb6a65199aba5caf6ea4";
 
 
 
+import YTSearch from 'youtube-api-search';
+
+import SearchBar from './components/search_bar';
+import VideosList from './components/video_list';
+import VideoDetail from './components/video_detail';
 
 
-function arrayRandom(len, min, max, unique) {
-   var len = (len) ? len : 10,
-           min = (min !== undefined) ? min : 1,
-           max = (max !== undefined) ? max : 100,
-           unique = (unique) ? unique : false,
-           toReturn = [], tempObj = {}, i = 0;
-
-   if(unique === true) {
-       for(; i < len; i++) {
-           var randomInt = Math.floor(Math.random() * ((max - min) + min));
-           if(tempObj['key_'+ randomInt] === undefined) {
-               tempObj['key_'+ randomInt] = randomInt;
-               toReturn.push(randomInt);
-           } else {
-               i--;
-           }
-       }
-   } else {
-       for(; i < len; i++) {
-           toReturn.push(Math.floor(Math.random() * ((max - min) + min)));
-       }
-   }
-
-   return toReturn;
-}
-
-
-
-
-var testcall=[{values:[{x:1, y:arrayRandom(1, 18, 30, true)},{x:2,y:arrayRandom(1, 18, 30, true) },
- {x:3,y:arrayRandom(1, 18, 30, true) },{x:4,y:arrayRandom(1, 18, 30, true) },{x:5,y:arrayRandom(1, 18, 30, true) },
- {x:6,y:arrayRandom(1, 18, 30, true) },{x:7,y:arrayRandom(1, 18, 30, true) },{x:8,y:arrayRandom(1, 18, 30, true) },
- {x:9,y:arrayRandom(1, 18, 30, true) },{x:10,y:arrayRandom(1, 18, 30, true) }]}];
-
+const API_KEY='AIzaSyCSod0d-Efc6ZdEArbgF6JkC9rOOZsuLBg';
 
 
 class App extends Component {
 
- constructor(props){
-   super(props);
+  constructor(props){
+    super(props);
 
-   this.tick1()
-   this.state={
+    this.state={
+      videos:[],
+    };
+    selectedVideo:null
 
- currentdata:testcall,
+this.videoSearch('React JS');
 
-   };
+  }
 
-
-
-
- }
-
-
-tick1(){
-var i=10;
-
-setInterval(()=>{
- console.log('Updating tick1...')
-
- this.state.currentdata[0].values.push({x:i=i+1,y:arrayRandom(1, 18, 30, true)})
- this.state.currentdata[0].values.shift()
- this.setState({
-   currentdata: this.state.currentdata
- })
-}, 1000)
+videoSearch(term){
+  YTSearch({key:API_KEY, term:term}, (videos) => {this.setState({videos:videos,
+  selectedVideo:videos[0]
+  })});
 
 }
 
-
 render(){
 
+const videoSearch=_.debounce((term)=>{this.videoSearch(term)},300);
+  return(
 
- return(
+  <div>
 
- <div>
-
- <NVD3Chart    xAxis={{ axisLabel: 'Time' }} yAxis={{ axisLabel: 'Temperature(in degree C)' }} yDomain= {[18,30]}
-
-  type="lineChart"  width="1200" height="700"  datum={testcall} />
+  <SearchBar onSearchTermChange={term=>this.videoSearch(term)}/>
 
 
+  <VideoDetail video={this.state.selectedVideo}/>
+  <VideosList
+   onVideoSelect={selectedVideo => this.setState({selectedVideo})}
+   videos={this.state.videos}/>
 
 
- </div>
-);
+
+  </div>
+ );
 
 }
 
@@ -100,6 +63,10 @@ render(){
 }
 
 ReactDOM.render(
- <div>
-    <App/>
- </div>,document.querySelector('.container'));
+  <div>
+     <App/>
+  </div>,document.querySelector('.container'));
+
+
+
+//ReactDOM.render(<GenericWeather city="Jerusalem" temp=17.61 status="sun"/>,document.querySelector('.container'));
